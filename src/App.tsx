@@ -20,18 +20,28 @@ function App() {
   const [title, setTitle] = useState<string>('');
   const [description, setDescription] = useState<string>('');
 
-  // Fetch server status
+  // Fetch server status and tasks from Payload CMS
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:3001/api/hello');
-        const data = await response.json();
-        setMessage(data.message);
 
-        // Try to fetch tasks if server is running
+        // Check if Payload CMS is running
         try {
-          const tasksResponse = await fetch('http://localhost:3001/api/tasks');
+          const response = await fetch('http://localhost:3000/api/globals/site-settings');
+          if (response.ok) {
+            setMessage('Connected to Payload CMS');
+          } else {
+            setMessage('Connected to Payload CMS API');
+          }
+        } catch (error) {
+          console.error('Error connecting to Payload CMS:', error);
+          setMessage('Failed to connect to Payload CMS');
+        }
+
+        // Try to fetch tasks from Payload CMS
+        try {
+          const tasksResponse = await fetch('http://localhost:3000/api/tasks');
           const tasksData = await tasksResponse.json();
           if (tasksData.docs) {
             setTasks(tasksData.docs);
@@ -41,7 +51,6 @@ function App() {
         }
       } catch (error) {
         console.error('Error fetching data:', error);
-        setMessage('Failed to connect to server');
       } finally {
         setLoading(false);
       }
@@ -58,7 +67,7 @@ function App() {
 
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:3001/api/tasks', {
+      const response = await fetch('http://localhost:3000/api/tasks', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
