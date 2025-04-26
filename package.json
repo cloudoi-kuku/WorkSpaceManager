@@ -16,6 +16,7 @@
     "dev:stop": "killall node"
   },
   "dependencies": {
+    "@headlessui/react": "^2.2.2",
     "@hookform/resolvers": "^5.0.1",
     "@payloadcms/db-postgres": "^3.35.1",
     "@radix-ui/react-label": "^2.1.4",

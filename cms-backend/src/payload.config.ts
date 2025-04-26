@@ -9,6 +9,16 @@ import { fileURLToPath } from 'url'
 import { Users } from './collections/Users'
 import { Media } from './collections/Media'
 import { Tasks } from './collections/Tasks'
+import { Workspaces } from './collections/Workspaces'
+import { Projects } from './collections/Projects'
+import { Features } from './collections/Features'
+import { WorkItems } from './collections/WorkItems'
+import { Sessions } from './collections/Sessions'
+import { RecoveryPoints } from './collections/RecoveryPoints'
+import { Dependencies } from './collections/Dependencies'
+import { WorkflowDefinitions } from './collections/WorkflowDefinitions'
+import { AIConversations } from './collections/AIConversations'
+import endpoints from './endpoints'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -20,7 +30,21 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, Media, Tasks],
+  collections: [
+    Users, 
+    Media, 
+    Tasks, 
+    Workspaces, 
+    Projects, 
+    Features, 
+    WorkItems, 
+    Sessions, 
+    RecoveryPoints, 
+    Dependencies, 
+    WorkflowDefinitions, 
+    AIConversations
+  ],
+  endpoints,
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',  // This should not be empty
   typescript: {
