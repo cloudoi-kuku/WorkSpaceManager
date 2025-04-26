@@ -3,15 +3,21 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "workspaces": [
+    ".",
+    "cms-backend"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "server": "cross-env PAYLOAD_SECRET=your-secret-key-change-me PAYLOAD_CONFIG_PATH=src/payload/payload.config.ts tsx src/server/index.ts",
-    "dev:server": "cross-env PAYLOAD_SECRET=your-secret-key-change-me PAYLOAD_CONFIG_PATH=src/payload/payload.config.ts tsx watch src/server/index.ts",
-    "payload:migrate": "cross-env PAYLOAD_CONFIG_PATH=src/payload/payload.config.ts tsx src/payload/migrate.ts",
-    "payload:generate-types": "cross-env PAYLOAD_CONFIG_PATH=src/payload/payload.config.ts tsx src/payload/generate-types.ts"
+    "dev:all": "concurrently \"npm run dev\" \"cd cms-backend && npm run dev\" --names \"FRONTEND,PAYLOAD\" --prefix-colors \"green,yellow\"",
+    "dev:stop": "killall node",
+    "payload:migrate": "cd cms-backend && npm run payload:migrate",
+    "payload:generate-types": "cd cms-backend && npm run generate:types",
+    "postinstall": "npm run setup:cms-backend",
+    "setup:cms-backend": "cd cms-backend && npm install"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",
@@ -43,6 +49,7 @@
     "@types/react-dom": "^19.0.4",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.21",
+    "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",
     "eslint": "^9.22.0",
     "eslint-plugin-react-hooks": "^5.2.0",
