@@ -5,7 +5,6 @@ import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import path from 'path'
 import { buildConfig } from 'payload'
 import { fileURLToPath } from 'url'
-import sharp from 'sharp'
 
 import { Users } from './collections/Users'
 import { Media } from './collections/Media'
@@ -23,18 +22,21 @@ export default buildConfig({
   },
   collections: [Users, Media, Tasks],
   editor: lexicalEditor(),
-  secret: process.env.PAYLOAD_SECRET || '',
+  secret: process.env.PAYLOAD_SECRET || '',  // This should not be empty
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },
   db: postgresAdapter({
     pool: {
-      connectionString: process.env.DATABASE_URI || '',
+      connectionString: process.env.DATABASE_URL || 'postgresql://postgres:postgres@192.168.1.89:54322/postgres',
     },
+    // Explicitly disable database creation
+    disableCreateDatabase: true,
+    // Add a custom schema name to isolate your tables
+    schemaName: 'workspace_manager',
   }),
   cors: ['http://localhost:5173'],
   csrf: ['http://localhost:5173'],
-  sharp,
   plugins: [
     payloadCloudPlugin(),
     // storage-adapter-placeholder

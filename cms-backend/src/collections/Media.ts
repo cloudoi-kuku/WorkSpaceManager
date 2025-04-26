@@ -12,5 +12,11 @@ export const Media: CollectionConfig = {
       required: true,
     },
   ],
-  upload: true,
+  upload: {
+    disableLocalStorage: false,
+    imageSizes: [],
+    staticURL: '/media',
+    staticDir: 'media',
+    mimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/svg+xml', 'application/pdf'],
+  },
 }

@@ -12,12 +12,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "dev:all": "concurrently \"npm run dev\" \"cd cms-backend && npm run dev\" --names \"FRONTEND,PAYLOAD\" --prefix-colors \"green,yellow\"",
-    "dev:stop": "killall node",
-    "payload:migrate": "cd cms-backend && npm run payload:migrate",
-    "payload:generate-types": "cd cms-backend && npm run generate:types",
-    "postinstall": "npm run setup:cms-backend",
-    "setup:cms-backend": "cd cms-backend && npm install"
+    "dev:all": "concurrently \"pnpm run dev\" \"cd cms-backend && pnpm run dev\" --names \"FRONTEND,PAYLOAD\" --prefix-colors \"green,yellow\"",
+    "dev:stop": "killall node"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",
