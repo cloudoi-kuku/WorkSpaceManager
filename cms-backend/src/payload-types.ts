@@ -70,6 +70,15 @@ export interface Config {
     users: User;
     media: Media;
     tasks: Task;
+    workspaces: Workspace;
+    projects: Project;
+    features: Feature;
+    'work-items': WorkItem;
+    sessions: Session;
+    'recovery-points': RecoveryPoint;
+    dependencies: Dependency;
+    'workflow-definitions': WorkflowDefinition;
+    'ai-conversations': AiConversation;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -79,6 +88,15 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     tasks: TasksSelect<false> | TasksSelect<true>;
+    workspaces: WorkspacesSelect<false> | WorkspacesSelect<true>;
+    projects: ProjectsSelect<false> | ProjectsSelect<true>;
+    features: FeaturesSelect<false> | FeaturesSelect<true>;
+    'work-items': WorkItemsSelect<false> | WorkItemsSelect<true>;
+    sessions: SessionsSelect<false> | SessionsSelect<true>;
+    'recovery-points': RecoveryPointsSelect<false> | RecoveryPointsSelect<true>;
+    dependencies: DependenciesSelect<false> | DependenciesSelect<true>;
+    'workflow-definitions': WorkflowDefinitionsSelect<false> | WorkflowDefinitionsSelect<true>;
+    'ai-conversations': AiConversationsSelect<false> | AiConversationsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -121,6 +139,29 @@ export interface UserAuthOperations {
  */
 export interface User {
   id: number;
+  firstName: string;
+  lastName: string;
+  role: 'admin' | 'user';
+  profileImage?: (number | null) | Media;
+  bio?: string | null;
+  isActive?: boolean | null;
+  lastLogin?: string | null;
+  /**
+   * User preferences and settings
+   */
+  preferences?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * GitHub OAuth token for integration
+   */
+  githubToken?: string | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -159,9 +200,1237 @@ export interface Media {
 export interface Task {
   id: number;
   title: string;
-  description?: string | null;
-  status: 'todo' | 'in-progress' | 'completed';
+  /**
+   * Detailed description of the task
+   */
+  description?: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Project this task belongs to
+   */
+  project: number | Project;
+  status: 'todo' | 'in-progress' | 'in-review' | 'blocked' | 'completed';
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  /**
+   * User assigned to this task
+   */
+  assignee?: (number | null) | User;
+  startDate?: string | null;
   dueDate?: string | null;
+  completedDate?: string | null;
+  /**
+   * Estimated hours to complete this task
+   */
+  estimatedHours?: number | null;
+  /**
+   * Actual hours spent on this task
+   */
+  actualHours?: number | null;
+  tags?:
+    | {
+        tag: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Parent task if this is a subtask
+   */
+  parentTask?: (number | null) | Task;
+  /**
+   * Tasks that must be completed before this task can start
+   */
+  dependencies?:
+    | {
+        task: number | Task;
+        type: 'blocks' | 'requires' | 'related';
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Files attached to this task
+   */
+  attachments?:
+    | {
+        file: number | Media;
+        description?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Comments on this task
+   */
+  comments?:
+    | {
+        author: number | User;
+        content: {
+          root: {
+            type: string;
+            children: {
+              type: string;
+              version: number;
+              [k: string]: unknown;
+            }[];
+            direction: ('ltr' | 'rtl') | null;
+            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+            indent: number;
+            version: number;
+          };
+          [k: string]: unknown;
+        };
+        createdAt?: string | null;
+        updatedAt?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * GitHub issue details if connected
+   */
+  githubIssue?: {
+    owner?: string | null;
+    repo?: string | null;
+    issueNumber?: number | null;
+    issueUrl?: string | null;
+    lastSyncedAt?: string | null;
+  };
+  /**
+   * Time tracking entries for this task
+   */
+  timeTracking?:
+    | {
+        user: number | User;
+        startedAt: string;
+        endedAt?: string | null;
+        /**
+         * Duration in minutes
+         */
+        duration?: number | null;
+        description?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "projects".
+ */
+export interface Project {
+  id: number;
+  /**
+   * The name of the project
+   */
+  name: string;
+  /**
+   * A description of the project
+   */
+  description?: string | null;
+  /**
+   * The workspace this project belongs to
+   */
+  workspace: number | Workspace;
+  status: 'planning' | 'in-progress' | 'on-hold' | 'completed' | 'canceled';
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  startDate?: string | null;
+  dueDate?: string | null;
+  completedDate?: string | null;
+  /**
+   * Users assigned to this project
+   */
+  assignees?:
+    | {
+        user: number | User;
+        role: 'manager' | 'developer' | 'designer' | 'tester' | 'stakeholder';
+        assignedAt?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  tags?:
+    | {
+        tag: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * GitHub repository details if connected
+   */
+  githubRepo?: {
+    owner?: string | null;
+    name?: string | null;
+    url?: string | null;
+    branch?: string | null;
+    lastSyncedAt?: string | null;
+  };
+  /**
+   * Project-specific settings
+   */
+  settings?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Project completion percentage
+   */
+  progress?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "workspaces".
+ */
+export interface Workspace {
+  id: number;
+  /**
+   * The name of the workspace
+   */
+  name: string;
+  /**
+   * A description of the workspace
+   */
+  description?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Members of this workspace
+   */
+  members?:
+    | {
+        user: number | User;
+        role: 'admin' | 'member' | 'viewer';
+        joinedAt?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  icon?: ('briefcase' | 'code' | 'document' | 'globe' | 'home' | 'lightning' | 'people' | 'project' | 'star') | null;
+  color?: ('blue' | 'green' | 'red' | 'purple' | 'orange' | 'pink' | 'cyan' | 'yellow' | 'gray') | null;
+  /**
+   * Whether this workspace is visible to non-members
+   */
+  isPublic?: boolean | null;
+  /**
+   * GitHub repositories connected to this workspace
+   */
+  githubRepositories?:
+    | {
+        name: string;
+        owner: string;
+        url?: string | null;
+        syncEnabled?: boolean | null;
+        lastSyncedAt?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Custom settings for this workspace
+   */
+  settings?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "features".
+ */
+export interface Feature {
+  id: number;
+  /**
+   * Feature name or title
+   */
+  title: string;
+  /**
+   * Detailed description of the feature
+   */
+  description?: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Project this feature belongs to
+   */
+  project: number | Project;
+  status: 'proposed' | 'approved' | 'in-development' | 'in-review' | 'testing' | 'done' | 'rejected';
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  /**
+   * Users assigned to this feature
+   */
+  assignees?:
+    | {
+        user: number | User;
+        role: 'owner' | 'developer' | 'reviewer' | 'tester' | 'stakeholder';
+        assignedAt?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Workflow definition used for this feature
+   */
+  workflowDefinition?: (number | null) | WorkflowDefinition;
+  /**
+   * When work on this feature should start
+   */
+  startDate?: string | null;
+  /**
+   * Target completion date
+   */
+  targetDate?: string | null;
+  /**
+   * When this feature was completed
+   */
+  completedDate?: string | null;
+  /**
+   * Estimated days to complete
+   */
+  estimatedDays?: number | null;
+  tags?:
+    | {
+        tag: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Other features this feature depends on
+   */
+  dependencies?:
+    | {
+        feature: number | Feature;
+        type: 'blocks' | 'requires' | 'related';
+        strength: 'weak' | 'medium' | 'strong';
+        notes?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Work items that implement this feature
+   */
+  workItems?:
+    | {
+        workItem: number | WorkItem;
+        addedAt?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Files attached to this feature
+   */
+  attachments?:
+    | {
+        file: number | Media;
+        description?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Comments on this feature
+   */
+  comments?:
+    | {
+        author: number | User;
+        content: {
+          root: {
+            type: string;
+            children: {
+              type: string;
+              version: number;
+              [k: string]: unknown;
+            }[];
+            direction: ('ltr' | 'rtl') | null;
+            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+            indent: number;
+            version: number;
+          };
+          [k: string]: unknown;
+        };
+        createdAt?: string | null;
+        updatedAt?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * GitHub issue details if connected
+   */
+  githubIssue?: {
+    owner?: string | null;
+    repo?: string | null;
+    issueNumber?: number | null;
+    issueUrl?: string | null;
+    lastSyncedAt?: string | null;
+  };
+  /**
+   * History of status changes
+   */
+  statusHistory?:
+    | {
+        from: string;
+        to: string;
+        changedBy: number | User;
+        changedAt: string;
+        reason?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Approval records for this feature
+   */
+  approvals?:
+    | {
+        /**
+         * The status transition this approval is for
+         */
+        transition: string;
+        approver: number | User;
+        status: 'pending' | 'approved' | 'rejected';
+        requestedAt: string;
+        respondedAt?: string | null;
+        comments?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Feature completion percentage
+   */
+  progress?: number | null;
+  /**
+   * Additional metadata about this feature
+   */
+  metadata?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "workflow-definitions".
+ */
+export interface WorkflowDefinition {
+  id: number;
+  /**
+   * Name of the workflow definition
+   */
+  name: string;
+  /**
+   * Description of the workflow and its purpose
+   */
+  description?: string | null;
+  /**
+   * Workspace this workflow definition belongs to
+   */
+  workspace: number | Workspace;
+  /**
+   * Whether this is the default workflow for the workspace
+   */
+  isDefault?: boolean | null;
+  /**
+   * Stages in this workflow
+   */
+  stages: {
+    name: string;
+    description?: string | null;
+    color: 'gray' | 'blue' | 'green' | 'yellow' | 'orange' | 'red' | 'purple' | 'pink' | 'cyan';
+    /**
+     * Order of this stage in the workflow (lower numbers come first)
+     */
+    order: number;
+    /**
+     * Whether transitioning to this stage requires approval
+     */
+    requiresApproval?: boolean | null;
+    /**
+     * Default assignees for items in this stage
+     */
+    defaultAssignees?:
+      | {
+          user: number | User;
+          role: 'assignee' | 'reviewer' | 'approver';
+          id?: string | null;
+        }[]
+      | null;
+    /**
+     * Custom fields required in this stage
+     */
+    customFields?:
+      | {
+          fieldName: string;
+          fieldType: 'text' | 'number' | 'date' | 'checkbox' | 'select';
+          isRequired?: boolean | null;
+          /**
+           * Options for select field type
+           */
+          options?:
+            | {
+                label: string;
+                value: string;
+                id?: string | null;
+              }[]
+            | null;
+          id?: string | null;
+        }[]
+      | null;
+    id?: string | null;
+  }[];
+  /**
+   * Rules for transitioning between stages
+   */
+  transitionRules?:
+    | {
+        /**
+         * Index of the from stage in the stages array
+         */
+        fromStage: number;
+        /**
+         * Index of the to stage in the stages array
+         */
+        toStage: number;
+        condition: 'always' | 'require-approval' | 'only-assignee' | 'only-creator' | 'only-admin' | 'custom';
+        /**
+         * Users who can approve this transition
+         */
+        approvers?:
+          | {
+              user: number | User;
+              id?: string | null;
+            }[]
+          | null;
+        /**
+         * Fields that must be completed before this transition is allowed
+         */
+        requiredFields?:
+          | {
+              fieldName: string;
+              id?: string | null;
+            }[]
+          | null;
+        /**
+         * Custom transition rule logic (JavaScript)
+         */
+        customRule?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Automated actions that occur during transitions
+   */
+  automations?:
+    | {
+        /**
+         * Stage index that triggers this automation
+         */
+        triggerStage?: number | null;
+        triggerType: 'enter' | 'exit' | 'time';
+        /**
+         * Time-based trigger condition
+         */
+        timeCondition?: {
+          /**
+           * Amount of time
+           */
+          amount: number;
+          unit: 'minutes' | 'hours' | 'days' | 'weeks';
+        };
+        actionType: 'assign' | 'notify' | 'priority' | 'comment' | 'move' | 'custom';
+        /**
+         * User to assign
+         */
+        assignUser?: (number | null) | User;
+        /**
+         * Template for the notification
+         */
+        notificationTemplate?: string | null;
+        notificationRecipients?: ('assignee' | 'creator' | 'team' | 'specific') | null;
+        /**
+         * Specific users to notify
+         */
+        specificRecipients?:
+          | {
+              user: number | User;
+              id?: string | null;
+            }[]
+          | null;
+        /**
+         * New priority value
+         */
+        priorityValue?: ('low' | 'medium' | 'high' | 'critical') | null;
+        /**
+         * Comment text to add
+         */
+        commentText?: string | null;
+        /**
+         * Stage to move to
+         */
+        targetStage?: number | null;
+        /**
+         * Custom action code (JavaScript)
+         */
+        customActionCode?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Additional metadata for this workflow definition
+   */
+  metadata?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "work-items".
+ */
+export interface WorkItem {
+  id: number;
+  /**
+   * Work item name or title
+   */
+  title: string;
+  /**
+   * Detailed description of the work item
+   */
+  description?: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Feature this work item belongs to
+   */
+  feature: number | Feature;
+  type: 'task' | 'bug' | 'documentation' | 'test' | 'refactor' | 'enhancement';
+  status: 'todo' | 'in-progress' | 'in-review' | 'blocked' | 'completed';
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  /**
+   * User assigned to this work item
+   */
+  assignee?: (number | null) | User;
+  /**
+   * When work on this item should start
+   */
+  startDate?: string | null;
+  /**
+   * When this work item is due
+   */
+  dueDate?: string | null;
+  /**
+   * When this work item was completed
+   */
+  completedDate?: string | null;
+  /**
+   * Estimated hours to complete
+   */
+  estimatedHours?: number | null;
+  /**
+   * Actual hours spent on this item
+   */
+  actualHours?: number | null;
+  /**
+   * Other work items this item depends on
+   */
+  dependencies?:
+    | {
+        workItem: number | WorkItem;
+        type: 'blocks' | 'requires' | 'related';
+        notes?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  tags?:
+    | {
+        tag: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Files attached to this work item
+   */
+  attachments?:
+    | {
+        file: number | Media;
+        description?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Comments on this work item
+   */
+  comments?:
+    | {
+        author: number | User;
+        content: {
+          root: {
+            type: string;
+            children: {
+              type: string;
+              version: number;
+              [k: string]: unknown;
+            }[];
+            direction: ('ltr' | 'rtl') | null;
+            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+            indent: number;
+            version: number;
+          };
+          [k: string]: unknown;
+        };
+        createdAt?: string | null;
+        updatedAt?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * GitHub issue details if connected
+   */
+  githubIssue?: {
+    owner?: string | null;
+    repo?: string | null;
+    issueNumber?: number | null;
+    issueUrl?: string | null;
+    lastSyncedAt?: string | null;
+  };
+  /**
+   * Time tracking entries for this work item
+   */
+  timeTracking?:
+    | {
+        user: number | User;
+        startedAt: string;
+        endedAt?: string | null;
+        /**
+         * Duration in minutes
+         */
+        duration?: number | null;
+        description?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * History of status changes
+   */
+  statusHistory?:
+    | {
+        from: string;
+        to: string;
+        changedBy: number | User;
+        changedAt: string;
+        reason?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Additional metadata about this work item
+   */
+  metadata?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "sessions".
+ */
+export interface Session {
+  id: number;
+  /**
+   * UUID for identifying this session across windows/tabs
+   */
+  sessionId: string;
+  /**
+   * User this session belongs to
+   */
+  user: number | User;
+  status: 'active' | 'paused' | 'completed' | 'expired';
+  /**
+   * Workspace this session is operating in
+   */
+  workspace?: (number | null) | Workspace;
+  /**
+   * Project this session is working on
+   */
+  project?: (number | null) | Project;
+  /**
+   * Task this session is working on
+   */
+  task?: (number | null) | Task;
+  /**
+   * When this session started
+   */
+  startedAt: string;
+  /**
+   * When this session was last active
+   */
+  lastActiveAt: string;
+  /**
+   * When this session was completed
+   */
+  completedAt?: string | null;
+  /**
+   * Total duration in minutes
+   */
+  totalDuration?: number | null;
+  /**
+   * Active work duration in minutes (excluding pauses)
+   */
+  activeDuration?: number | null;
+  /**
+   * Time tracking entries within this session
+   */
+  timeEntries?:
+    | {
+        startedAt: string;
+        endedAt?: string | null;
+        /**
+         * Duration in minutes
+         */
+        duration?: number | null;
+        type: 'work' | 'break' | 'meeting' | 'planning' | 'review';
+        /**
+         * Associated task (if any)
+         */
+        task?: (number | null) | Task;
+        description?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Saved recovery points for this session
+   */
+  recoveryPoints?:
+    | {
+        recoveryPointId: string;
+        description: string;
+        createdAt: string;
+        type: 'auto' | 'manual';
+        /**
+         * State context information for recovery
+         */
+        context?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Current session context data
+   */
+  context?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Last error encountered in this session
+   */
+  lastError?: {
+    message?: string | null;
+    stack?: string | null;
+    timestamp?: string | null;
+    recoveryPointCreated?: boolean | null;
+  };
+  /**
+   * Additional metadata about this session
+   */
+  metadata?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Devices/browsers used in this session
+   */
+  devices?:
+    | {
+        windowId: string;
+        userAgent?: string | null;
+        lastActiveAt?: string | null;
+        ipAddress?: string | null;
+        platform?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Whether this session is archived
+   */
+  isArchived?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "recovery-points".
+ */
+export interface RecoveryPoint {
+  id: number;
+  /**
+   * UUID for this recovery point
+   */
+  recoveryPointId: string;
+  /**
+   * Description of this recovery point
+   */
+  description: string;
+  /**
+   * User this recovery point belongs to
+   */
+  user: number | User;
+  /**
+   * Session this recovery point is associated with
+   */
+  session?: (number | null) | Session;
+  /**
+   * Workspace at the time of recovery point creation
+   */
+  workspace?: (number | null) | Workspace;
+  /**
+   * Project at the time of recovery point creation
+   */
+  project?: (number | null) | Project;
+  /**
+   * Feature at the time of recovery point creation
+   */
+  feature?: (number | null) | Feature;
+  type: 'auto' | 'manual' | 'error' | 'system';
+  /**
+   * Saved state data for recovery
+   */
+  state:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Optional thumbnail of the workspace state
+   */
+  thumbnailImage?: (number | null) | Media;
+  /**
+   * Information about the device that created this recovery point
+   */
+  deviceInfo?: {
+    userAgent?: string | null;
+    platform?: string | null;
+    windowId?: string | null;
+    ipAddress?: string | null;
+  };
+  tags?:
+    | {
+        tag: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Additional metadata about this recovery point
+   */
+  metadata?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Whether this recovery point is archived
+   */
+  isArchived?: boolean | null;
+  /**
+   * When this recovery point should expire
+   */
+  expiresAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "dependencies".
+ */
+export interface Dependency {
+  id: number;
+  /**
+   * Description of this dependency relationship
+   */
+  description?: string | null;
+  /**
+   * Type of the source item
+   */
+  sourceType: 'feature' | 'work-item' | 'task' | 'project';
+  /**
+   * ID of the source item
+   */
+  sourceId: string;
+  /**
+   * Type of the target item
+   */
+  targetType: 'feature' | 'work-item' | 'task' | 'project';
+  /**
+   * ID of the target item
+   */
+  targetId: string;
+  /**
+   * Type of dependency relationship
+   */
+  type: 'blocks' | 'requires' | 'enhances' | 'related' | 'contains' | 'implements' | 'tests' | 'duplicates';
+  /**
+   * Strength/importance of the dependency
+   */
+  strength: 'weak' | 'medium' | 'strong';
+  state: 'active' | 'resolved' | 'ignored';
+  /**
+   * Workspace this dependency belongs to
+   */
+  workspace: number | Workspace;
+  /**
+   * Project this dependency belongs to
+   */
+  project?: (number | null) | Project;
+  /**
+   * Additional notes about this dependency
+   */
+  notes?: string | null;
+  createdBy?: (number | null) | User;
+  /**
+   * User who resolved this dependency
+   */
+  resolvedBy?: (number | null) | User;
+  /**
+   * When this dependency was resolved
+   */
+  resolvedAt?: string | null;
+  /**
+   * Additional metadata about this dependency
+   */
+  metadata?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ai-conversations".
+ */
+export interface AiConversation {
+  id: number;
+  /**
+   * Title of this conversation
+   */
+  title: string;
+  /**
+   * User this conversation belongs to
+   */
+  user: number | User;
+  /**
+   * Workspace this conversation is related to
+   */
+  workspace?: (number | null) | Workspace;
+  /**
+   * Project this conversation is related to
+   */
+  project?: (number | null) | Project;
+  /**
+   * Feature this conversation is related to
+   */
+  feature?: (number | null) | Feature;
+  /**
+   * Work item this conversation is related to
+   */
+  workItem?: (number | null) | WorkItem;
+  modelName: 'deepseek-coder' | 'llama3' | 'mistral' | 'codellama' | 'gemma' | 'custom';
+  /**
+   * Name of custom model
+   */
+  customModelName?: string | null;
+  /**
+   * Messages in this conversation
+   */
+  messages: {
+    role: 'user' | 'assistant' | 'system';
+    content: string;
+    timestamp: string;
+    /**
+     * Additional metadata for this message
+     */
+    metadata?:
+      | {
+          [k: string]: unknown;
+        }
+      | unknown[]
+      | string
+      | number
+      | boolean
+      | null;
+    id?: string | null;
+  }[];
+  /**
+   * Files included in the context for this conversation
+   */
+  contextFiles?:
+    | {
+        file: number | Media;
+        description?: string | null;
+        addedAt: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Files generated during this conversation
+   */
+  generatedFiles?:
+    | {
+        file: number | Media;
+        description?: string | null;
+        generatedAt: string;
+        /**
+         * Index of the message that generated this file
+         */
+        associatedMessage?: number | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * System prompt used for this conversation
+   */
+  systemPrompt?: string | null;
+  tags?:
+    | {
+        tag: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Model parameters used for this conversation
+   */
+  parameters?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Favorite messages in this conversation
+   */
+  favorites?:
+    | {
+        messageIndex: number;
+        description?: string | null;
+        addedAt: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Whether this conversation is archived
+   */
+  isArchived?: boolean | null;
+  /**
+   * Additional metadata about this conversation
+   */
+  metadata?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -183,6 +1452,42 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'tasks';
         value: number | Task;
+      } | null)
+    | ({
+        relationTo: 'workspaces';
+        value: number | Workspace;
+      } | null)
+    | ({
+        relationTo: 'projects';
+        value: number | Project;
+      } | null)
+    | ({
+        relationTo: 'features';
+        value: number | Feature;
+      } | null)
+    | ({
+        relationTo: 'work-items';
+        value: number | WorkItem;
+      } | null)
+    | ({
+        relationTo: 'sessions';
+        value: number | Session;
+      } | null)
+    | ({
+        relationTo: 'recovery-points';
+        value: number | RecoveryPoint;
+      } | null)
+    | ({
+        relationTo: 'dependencies';
+        value: number | Dependency;
+      } | null)
+    | ({
+        relationTo: 'workflow-definitions';
+        value: number | WorkflowDefinition;
+      } | null)
+    | ({
+        relationTo: 'ai-conversations';
+        value: number | AiConversation;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -231,6 +1536,15 @@ export interface PayloadMigration {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  firstName?: T;
+  lastName?: T;
+  role?: T;
+  profileImage?: T;
+  bio?: T;
+  isActive?: T;
+  lastLogin?: T;
+  preferences?: T;
+  githubToken?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -267,8 +1581,585 @@ export interface MediaSelect<T extends boolean = true> {
 export interface TasksSelect<T extends boolean = true> {
   title?: T;
   description?: T;
+  project?: T;
   status?: T;
+  priority?: T;
+  assignee?: T;
+  startDate?: T;
   dueDate?: T;
+  completedDate?: T;
+  estimatedHours?: T;
+  actualHours?: T;
+  tags?:
+    | T
+    | {
+        tag?: T;
+        id?: T;
+      };
+  parentTask?: T;
+  dependencies?:
+    | T
+    | {
+        task?: T;
+        type?: T;
+        id?: T;
+      };
+  attachments?:
+    | T
+    | {
+        file?: T;
+        description?: T;
+        id?: T;
+      };
+  comments?:
+    | T
+    | {
+        author?: T;
+        content?: T;
+        createdAt?: T;
+        updatedAt?: T;
+        id?: T;
+      };
+  githubIssue?:
+    | T
+    | {
+        owner?: T;
+        repo?: T;
+        issueNumber?: T;
+        issueUrl?: T;
+        lastSyncedAt?: T;
+      };
+  timeTracking?:
+    | T
+    | {
+        user?: T;
+        startedAt?: T;
+        endedAt?: T;
+        duration?: T;
+        description?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "workspaces_select".
+ */
+export interface WorkspacesSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
+  members?:
+    | T
+    | {
+        user?: T;
+        role?: T;
+        joinedAt?: T;
+        id?: T;
+      };
+  icon?: T;
+  color?: T;
+  isPublic?: T;
+  githubRepositories?:
+    | T
+    | {
+        name?: T;
+        owner?: T;
+        url?: T;
+        syncEnabled?: T;
+        lastSyncedAt?: T;
+        id?: T;
+      };
+  settings?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "projects_select".
+ */
+export interface ProjectsSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
+  workspace?: T;
+  status?: T;
+  priority?: T;
+  startDate?: T;
+  dueDate?: T;
+  completedDate?: T;
+  assignees?:
+    | T
+    | {
+        user?: T;
+        role?: T;
+        assignedAt?: T;
+        id?: T;
+      };
+  tags?:
+    | T
+    | {
+        tag?: T;
+        id?: T;
+      };
+  githubRepo?:
+    | T
+    | {
+        owner?: T;
+        name?: T;
+        url?: T;
+        branch?: T;
+        lastSyncedAt?: T;
+      };
+  settings?: T;
+  progress?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "features_select".
+ */
+export interface FeaturesSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  project?: T;
+  status?: T;
+  priority?: T;
+  assignees?:
+    | T
+    | {
+        user?: T;
+        role?: T;
+        assignedAt?: T;
+        id?: T;
+      };
+  workflowDefinition?: T;
+  startDate?: T;
+  targetDate?: T;
+  completedDate?: T;
+  estimatedDays?: T;
+  tags?:
+    | T
+    | {
+        tag?: T;
+        id?: T;
+      };
+  dependencies?:
+    | T
+    | {
+        feature?: T;
+        type?: T;
+        strength?: T;
+        notes?: T;
+        id?: T;
+      };
+  workItems?:
+    | T
+    | {
+        workItem?: T;
+        addedAt?: T;
+        id?: T;
+      };
+  attachments?:
+    | T
+    | {
+        file?: T;
+        description?: T;
+        id?: T;
+      };
+  comments?:
+    | T
+    | {
+        author?: T;
+        content?: T;
+        createdAt?: T;
+        updatedAt?: T;
+        id?: T;
+      };
+  githubIssue?:
+    | T
+    | {
+        owner?: T;
+        repo?: T;
+        issueNumber?: T;
+        issueUrl?: T;
+        lastSyncedAt?: T;
+      };
+  statusHistory?:
+    | T
+    | {
+        from?: T;
+        to?: T;
+        changedBy?: T;
+        changedAt?: T;
+        reason?: T;
+        id?: T;
+      };
+  approvals?:
+    | T
+    | {
+        transition?: T;
+        approver?: T;
+        status?: T;
+        requestedAt?: T;
+        respondedAt?: T;
+        comments?: T;
+        id?: T;
+      };
+  progress?: T;
+  metadata?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "work-items_select".
+ */
+export interface WorkItemsSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  feature?: T;
+  type?: T;
+  status?: T;
+  priority?: T;
+  assignee?: T;
+  startDate?: T;
+  dueDate?: T;
+  completedDate?: T;
+  estimatedHours?: T;
+  actualHours?: T;
+  dependencies?:
+    | T
+    | {
+        workItem?: T;
+        type?: T;
+        notes?: T;
+        id?: T;
+      };
+  tags?:
+    | T
+    | {
+        tag?: T;
+        id?: T;
+      };
+  attachments?:
+    | T
+    | {
+        file?: T;
+        description?: T;
+        id?: T;
+      };
+  comments?:
+    | T
+    | {
+        author?: T;
+        content?: T;
+        createdAt?: T;
+        updatedAt?: T;
+        id?: T;
+      };
+  githubIssue?:
+    | T
+    | {
+        owner?: T;
+        repo?: T;
+        issueNumber?: T;
+        issueUrl?: T;
+        lastSyncedAt?: T;
+      };
+  timeTracking?:
+    | T
+    | {
+        user?: T;
+        startedAt?: T;
+        endedAt?: T;
+        duration?: T;
+        description?: T;
+        id?: T;
+      };
+  statusHistory?:
+    | T
+    | {
+        from?: T;
+        to?: T;
+        changedBy?: T;
+        changedAt?: T;
+        reason?: T;
+        id?: T;
+      };
+  metadata?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "sessions_select".
+ */
+export interface SessionsSelect<T extends boolean = true> {
+  sessionId?: T;
+  user?: T;
+  status?: T;
+  workspace?: T;
+  project?: T;
+  task?: T;
+  startedAt?: T;
+  lastActiveAt?: T;
+  completedAt?: T;
+  totalDuration?: T;
+  activeDuration?: T;
+  timeEntries?:
+    | T
+    | {
+        startedAt?: T;
+        endedAt?: T;
+        duration?: T;
+        type?: T;
+        task?: T;
+        description?: T;
+        id?: T;
+      };
+  recoveryPoints?:
+    | T
+    | {
+        recoveryPointId?: T;
+        description?: T;
+        createdAt?: T;
+        type?: T;
+        context?: T;
+        id?: T;
+      };
+  context?: T;
+  lastError?:
+    | T
+    | {
+        message?: T;
+        stack?: T;
+        timestamp?: T;
+        recoveryPointCreated?: T;
+      };
+  metadata?: T;
+  devices?:
+    | T
+    | {
+        windowId?: T;
+        userAgent?: T;
+        lastActiveAt?: T;
+        ipAddress?: T;
+        platform?: T;
+        id?: T;
+      };
+  isArchived?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "recovery-points_select".
+ */
+export interface RecoveryPointsSelect<T extends boolean = true> {
+  recoveryPointId?: T;
+  description?: T;
+  user?: T;
+  session?: T;
+  workspace?: T;
+  project?: T;
+  feature?: T;
+  type?: T;
+  state?: T;
+  thumbnailImage?: T;
+  deviceInfo?:
+    | T
+    | {
+        userAgent?: T;
+        platform?: T;
+        windowId?: T;
+        ipAddress?: T;
+      };
+  tags?:
+    | T
+    | {
+        tag?: T;
+        id?: T;
+      };
+  metadata?: T;
+  isArchived?: T;
+  expiresAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "dependencies_select".
+ */
+export interface DependenciesSelect<T extends boolean = true> {
+  description?: T;
+  sourceType?: T;
+  sourceId?: T;
+  targetType?: T;
+  targetId?: T;
+  type?: T;
+  strength?: T;
+  state?: T;
+  workspace?: T;
+  project?: T;
+  notes?: T;
+  createdBy?: T;
+  resolvedBy?: T;
+  resolvedAt?: T;
+  metadata?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "workflow-definitions_select".
+ */
+export interface WorkflowDefinitionsSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
+  workspace?: T;
+  isDefault?: T;
+  stages?:
+    | T
+    | {
+        name?: T;
+        description?: T;
+        color?: T;
+        order?: T;
+        requiresApproval?: T;
+        defaultAssignees?:
+          | T
+          | {
+              user?: T;
+              role?: T;
+              id?: T;
+            };
+        customFields?:
+          | T
+          | {
+              fieldName?: T;
+              fieldType?: T;
+              isRequired?: T;
+              options?:
+                | T
+                | {
+                    label?: T;
+                    value?: T;
+                    id?: T;
+                  };
+              id?: T;
+            };
+        id?: T;
+      };
+  transitionRules?:
+    | T
+    | {
+        fromStage?: T;
+        toStage?: T;
+        condition?: T;
+        approvers?:
+          | T
+          | {
+              user?: T;
+              id?: T;
+            };
+        requiredFields?:
+          | T
+          | {
+              fieldName?: T;
+              id?: T;
+            };
+        customRule?: T;
+        id?: T;
+      };
+  automations?:
+    | T
+    | {
+        triggerStage?: T;
+        triggerType?: T;
+        timeCondition?:
+          | T
+          | {
+              amount?: T;
+              unit?: T;
+            };
+        actionType?: T;
+        assignUser?: T;
+        notificationTemplate?: T;
+        notificationRecipients?: T;
+        specificRecipients?:
+          | T
+          | {
+              user?: T;
+              id?: T;
+            };
+        priorityValue?: T;
+        commentText?: T;
+        targetStage?: T;
+        customActionCode?: T;
+        id?: T;
+      };
+  metadata?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ai-conversations_select".
+ */
+export interface AiConversationsSelect<T extends boolean = true> {
+  title?: T;
+  user?: T;
+  workspace?: T;
+  project?: T;
+  feature?: T;
+  workItem?: T;
+  modelName?: T;
+  customModelName?: T;
+  messages?:
+    | T
+    | {
+        role?: T;
+        content?: T;
+        timestamp?: T;
+        metadata?: T;
+        id?: T;
+      };
+  contextFiles?:
+    | T
+    | {
+        file?: T;
+        description?: T;
+        addedAt?: T;
+        id?: T;
+      };
+  generatedFiles?:
+    | T
+    | {
+        file?: T;
+        description?: T;
+        generatedAt?: T;
+        associatedMessage?: T;
+        id?: T;
+      };
+  systemPrompt?: T;
+  tags?:
+    | T
+    | {
+        tag?: T;
+        id?: T;
+      };
+  parameters?: T;
+  favorites?:
+    | T
+    | {
+        messageIndex?: T;
+        description?: T;
+        addedAt?: T;
+        id?: T;
+      };
+  isArchived?: T;
+  metadata?: T;
   updatedAt?: T;
   createdAt?: T;
 }

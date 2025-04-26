@@ -1,66 +1,81 @@
-# CMS Backend Template
+# WorkSpaceManager CMS Backend
 
-This is a reusable Payload CMS backend template configured with PostgreSQL for building modern web applications.
+This is the backend for the WorkSpaceManager application, built with [Payload CMS](https://payloadcms.com/) and PostgreSQL.
 
 ## Features
 
-- **Payload CMS**: A powerful headless CMS with a beautiful admin interface
-- **PostgreSQL**: Robust and scalable database support
-- **Next.js**: Server-side rendering and API routes
-- **TypeScript**: Full type safety throughout the application
-- **Authentication**: Built-in user authentication and authorization
-- **API**: RESTful and GraphQL APIs for all collections
+- **User Management**: Authentication and user roles
+- **Workspaces, Projects, Features, and Tasks**: Collections for organizing work
+- **Session Tracking**: Complete session persistence and recovery
+- **Workflow Definitions**: Custom workflow stages and transitions
+- **AI Integration**: Conversations with LLMs for code and project assistance
+- **Dependencies**: Track relationships between items
+- **Recovery Points**: Never lose work with automatic and manual recovery points
 
-## Quick Start
+## Getting Started
 
-To use this template as part of the full-stack application:
+### Prerequisites
 
-1. Make sure PostgreSQL is installed and running
-2. Configure the `.env` file with your PostgreSQL connection string
-3. Run `npm install` to install dependencies
-4. Run `npm run dev` to start the development server
-5. Access the admin interface at `http://localhost:3000/admin`
+- Node.js (v18.20.2 or v20.9.0+)
+- PostgreSQL database
 
-## Standalone Usage
+### Installation
 
-If you want to use this CMS backend as a standalone application:
+1. Install dependencies:
+   ```bash
+   pnpm install
+   ```
 
-1. Clone or copy this directory
-2. Configure the `.env` file with your PostgreSQL connection string
-3. Run `npm install` to install dependencies
-4. Run `npm run dev` to start the development server
-5. Access the admin interface at `http://localhost:3000/admin`
+2. Set up your environment variables:
+   ```
+   # Create a .env file based on .env.example
+   cp .env.example .env
+   ```
 
-## How it works
+3. Update your `.env` file with your database connection details:
+   ```
+   DATABASE_URL=postgresql://username:password@localhost:5432/workspace_manager
+   PAYLOAD_SECRET=your-secure-secret-key
+   ```
 
-The Payload config is tailored specifically to the needs of most websites. It is pre-configured in the following ways:
+4. Start the development server:
+   ```bash
+   pnpm run dev
+   ```
 
-### Collections
+5. Initialize the database with sample data:
+   ```bash
+   pnpm run seed
+   ```
 
-See the [Collections](https://payloadcms.com/docs/configuration/collections) docs for details on how to extend this functionality.
+### Default Credentials
 
-- #### Users (Authentication)
+After running the seed script, you can log in with the following credentials:
 
-  Users are auth-enabled collections that have access to the admin panel.
+- Admin User:
+  - Email: admin@example.com
+  - Password: password123
 
-  For additional help, see the official [Auth Example](https://github.com/payloadcms/payload/tree/main/examples/auth) or the [Authentication](https://payloadcms.com/docs/authentication/overview#authentication-overview) docs.
-
-- #### Media
-
-  This is the uploads enabled collection. It features pre-configured sizes, focal point and manual resizing to help you manage your pictures.
-
-### Docker
-
-You can use [Docker](https://www.docker.com) to run this template with PostgreSQL. To do so:
-
-1. Make sure Docker and Docker Compose are installed
-2. Configure the `.env` file with your PostgreSQL connection string
-3. Run `docker-compose up` to start both the CMS and PostgreSQL
-4. Access the admin interface at `http://localhost:3000/admin`
+- Regular User:
+  - Email: user@example.com
+  - Password: password123
 
 ## API Endpoints
 
-Payload CMS provides standard REST and GraphQL APIs for all collections:
+The CMS provides standard REST and GraphQL APIs for all collections, plus custom endpoints for session management:
+
+### Session Management
+
+- `POST /api/sessions/start` - Start a new work session
+- `POST /api/sessions/:id/resume` - Resume a paused session
+- `POST /api/sessions/:id/pause` - Pause an active session
+- `POST /api/sessions/:id/complete` - Complete a session
+- `POST /api/sessions/:id/context` - Save the current work context
+- `POST /api/session-tracking/save-state` - Low-level API to save the current work state
+
+### Payload CMS APIs
+
+Standard REST and GraphQL APIs are available for all collections:
 
 - `GET /api/<collection>` - List all documents in a collection
 - `POST /api/<collection>` - Create a new document
@@ -70,10 +85,61 @@ Payload CMS provides standard REST and GraphQL APIs for all collections:
 
 GraphQL API is available at `/api/graphql`.
 
-## Integration with Frontend
+## Collections
 
-This CMS backend is designed to work seamlessly with the React frontend in the parent directory. The frontend connects to the CMS API endpoints to fetch and manipulate data.
+The backend includes the following collections:
 
-## Questions
+- **Users**: User accounts with different roles
+- **Workspaces**: Top-level organization for work
+- **Projects**: Projects within workspaces
+- **Features**: Features within projects
+- **WorkItems**: Actionable tasks for implementing features
+- **Tasks**: Simple tasks associated with projects
+- **Sessions**: Work sessions for tracking time and state
+- **RecoveryPoints**: Saved states for recovery
+- **Dependencies**: Relationships between items
+- **WorkflowDefinitions**: Custom workflow stages and rules
+- **AIConversations**: Conversations with LLMs for code assistance
+- **Media**: Files and images
 
-If you have any issues or questions about Payload CMS, refer to the [official documentation](https://payloadcms.com/docs) or start a [GitHub discussion](https://github.com/payloadcms/payload/discussions).
+## Development
+
+### Available Scripts
+
+- `pnpm run dev` - Start the development server
+- `pnpm run build` - Build the application for production
+- `pnpm run start` - Start the production server
+- `pnpm run seed` - Seed the database with sample data
+- `pnpm run generate:types` - Generate TypeScript types from collections
+
+## Database Structure
+
+The application uses PostgreSQL with a dedicated schema (`workspace_manager`) to isolate the tables. The database is accessed through Payload's PostgreSQL adapter, which handles all schema migrations and data operations.
+
+## Technical Details
+
+- **Payload CMS**: Provides the backend framework, admin UI, and APIs
+- **PostgreSQL**: Primary database for persistent storage
+- **TypeScript**: Ensures type safety and better developer experience
+- **Express/Next.js**: Powers the server and API endpoints
+- **Authentication**: JWT-based authentication through Payload CMS
+
+## Deployment
+
+For production deployment, follow these steps:
+
+1. Build the application:
+   ```bash
+   pnpm run build
+   ```
+
+2. Start the production server:
+   ```bash
+   pnpm run start
+   ```
+
+For cloud deployment, ensure your environment variables are properly configured in your hosting environment.
+
+## License
+
+This project is licensed under the MIT License.

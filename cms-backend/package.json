@@ -12,20 +12,24 @@
     "generate:types": "cross-env NODE_OPTIONS=--no-deprecation payload generate:types",
     "lint": "cross-env NODE_OPTIONS=--no-deprecation next lint",
     "payload": "cross-env NODE_OPTIONS=--no-deprecation payload",
-    "start": "cross-env NODE_OPTIONS=--no-deprecation next start"
+    "start": "cross-env NODE_OPTIONS=--no-deprecation next start",
+    "seed": "cross-env NODE_OPTIONS=--no-deprecation payload run src/seed/seed-payload.js",
+    "seed:ts": "cross-env NODE_OPTIONS=--no-deprecation tsx src/seed/seed-direct.ts"
   },
   "dependencies": {
+    "@payloadcms/db-postgres": "3.33.0",
     "@payloadcms/next": "3.33.0",
     "@payloadcms/payload-cloud": "3.33.0",
     "@payloadcms/richtext-lexical": "3.33.0",
     "cross-env": "^7.0.3",
+    "dotenv": "^16.3.1",
     "graphql": "^16.8.1",
     "next": "15.3.0",
     "payload": "3.33.0",
+    "pg": "^8.15.6",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "sharp": "0.32.6",
-    "@payloadcms/db-postgres": "3.33.0"
+    "sharp": "0.32.6"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
@@ -35,6 +39,8 @@
     "eslint": "^9.16.0",
     "eslint-config-next": "15.3.0",
     "prettier": "^3.4.2",
+    "ts-node": "^10.9.1",
+    "tsx": "^4.19.3",
     "typescript": "5.7.3"
   },
   "engines": {
