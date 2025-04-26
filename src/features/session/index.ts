@@ -11,11 +11,9 @@ export {
 } from './SessionContext';
 
 // Components
-export { 
-  SessionControls, 
-  RecoveryPointList, 
-  SessionStatus 
-} from './components/SessionControls';
+export { SessionControls } from './components/SessionControls';
+export { RecoveryPointList } from './components/RecoveryPointList';
+export { SessionStatus } from './components/SessionStatus';
 
 export { 
   ErrorBoundary, 
